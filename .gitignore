@@ -1,0 +1,97 @@
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# Key files
+*.key
+*.pem
+*.p12
+*.pfx
+private_key*
+secret_key*
+api_key*
+config_key*
+
+# Firebase service account keys
+service-account-key.json
+firebase-credentials.json
+google-credentials.json
+firebase-*.json
+google-services.json
+GoogleService-Info.plist
+
+# API keys and secrets
+keys/
+secrets/
+*.secret
+*.token
+credentials.json
+config/secrets.json
+
+# Flutter/Android build files (long path issues)
+build/
+.android/
+flutter_build/
+*.apk
+*.aab
+*.aar
+
+# Dart/Flutter generated files
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+flutter_export_environment.sh
+
+# IDE files
+.vscode/
+.idea/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+cache/
+.chromium/
+.bm25_cache/
+
+# Node modules (if any)
+node_modules/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Backup files
+*.bak
+*.backup
