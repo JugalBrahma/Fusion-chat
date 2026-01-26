@@ -81,6 +81,7 @@ logs/
 cache/
 .chromium/
 .bm25_cache/
+bm25_cache/
 
 # Node modules (if any)
 node_modules/
