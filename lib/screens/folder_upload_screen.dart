@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/pdf_delete_service.dart';
-import '../services/folder_pdf_service.dart';
+import '../providers/pdf_provider.dart';
 import '../widgets/pdf_upload_button.dart';
 
-class FolderUploadScreen extends StatefulWidget {
+class FolderUploadScreen extends ConsumerStatefulWidget {
   final String folderId;
   final String folderName;
 
@@ -17,10 +17,10 @@ class FolderUploadScreen extends StatefulWidget {
   });
 
   @override
-  State<FolderUploadScreen> createState() => _FolderUploadScreenState();
+  ConsumerState<FolderUploadScreen> createState() => _FolderUploadScreenState();
 }
 
-class _FolderUploadScreenState extends State<FolderUploadScreen> {
+class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final Set<String> _deletingPdfs = <String>{};
   
@@ -42,7 +42,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen> {
     });
 
     try {
-      await PdfDeleteService().deletePdf(pdfId, folderId: widget.folderId);
+      await ref.read(pdfProvider.notifier).deletePdf(pdfId, folderId: widget.folderId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -135,7 +135,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen> {
                 ),
                 SizedBox(height: 24),
                 StreamBuilder<int>(
-                  stream: FolderPdfService().pdfCountStream(widget.folderId),
+                  stream: ref.watch(pdfProvider.notifier).pdfCountStream(widget.folderId),
                   builder: (context, snapshot) {
                     final pdfCount = snapshot.data ?? 0;
                     final isLimitReached = pdfCount >= 3;
@@ -217,7 +217,7 @@ class _FolderUploadScreenState extends State<FolderUploadScreen> {
                           ),
                         ),
                         StreamBuilder<int>(
-                          stream: FolderPdfService().pdfCountStream(widget.folderId),
+                          stream: ref.watch(pdfProvider.notifier).pdfCountStream(widget.folderId),
                           builder: (context, snapshot) {
                             final pdfCount = snapshot.data ?? 0;
                             return Container(

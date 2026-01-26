@@ -1,9 +1,14 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 class AnalyticsService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<Map<String, dynamic>> getFolderAnalytics(String folderId) async {
     try {
@@ -155,6 +160,30 @@ class AnalyticsService {
       print('Error fetching analytics: $e');
       return _getDefaultAnalytics();
     }
+  }
+
+  Future<Map<String, dynamic>> getFolderAnalyticsFromApi(String folderId) async {
+    // Get current user token
+    final user = _auth.currentUser;
+    if (user == null) {
+      throw Exception('User not authenticated');
+    }
+
+    final token = await user.getIdToken();
+
+    final response = await http.get(
+      Uri.parse('${ApiConfig.baseUrl}/api/analytics/$folderId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    }
+
+    throw Exception('Failed to load analytics: ${response.body}');
   }
   
   int _calculateStreak(Map<String, int> dailyActivity) {

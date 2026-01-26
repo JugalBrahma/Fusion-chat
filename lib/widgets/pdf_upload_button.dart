@@ -1,9 +1,11 @@
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import '../services/pdf_upload_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/pdf_provider.dart';
 
-class PdfUploadButton extends StatefulWidget {
+class PdfUploadButton extends ConsumerStatefulWidget {
   final Function(Map<String, dynamic>)? onUploadComplete;
   final String? folderId;
 
@@ -14,17 +16,15 @@ class PdfUploadButton extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<PdfUploadButton> createState() => _PdfUploadButtonState();
+  ConsumerState<PdfUploadButton> createState() => _PdfUploadButtonState();
 }
 
-class _PdfUploadButtonState extends State<PdfUploadButton> {
-  bool _isUploading = false;
+class _PdfUploadButtonState extends ConsumerState<PdfUploadButton> {
   String? _errorMessage;
 
   Future<void> _uploadPdf() async {
     try {
       setState(() {
-        _isUploading = true;
         _errorMessage = null;
       });
 
@@ -34,10 +34,14 @@ class _PdfUploadButtonState extends State<PdfUploadButton> {
       );
 
       if (result != null) {
-        final file = File(result.files.single.path!);
-        final uploadService = PdfUploadService();
+        final file = result.files.single.path;
+        if (file == null) {
+          throw Exception('Invalid file path');
+        }
         
-        final response = await uploadService.uploadPdf(file, folderId: widget.folderId);
+        final response = await ref
+            .read(pdfProvider.notifier)
+            .uploadPdf(File(file), folderId: widget.folderId);
         
         if (widget.onUploadComplete != null) {
           widget.onUploadComplete!(response);
@@ -66,9 +70,9 @@ class _PdfUploadButtonState extends State<PdfUploadButton> {
         ),
       );
     } finally {
-      setState(() {
-        _isUploading = false;
-      });
+      if (mounted) {
+        setState(() {});
+      }
     }
   }
 
@@ -77,8 +81,8 @@ class _PdfUploadButtonState extends State<PdfUploadButton> {
     return Column(
       children: [
         ElevatedButton(
-          onPressed: _isUploading ? null : _uploadPdf,
-          child: _isUploading
+          onPressed: ref.watch(pdfProvider).isUploading ? null : _uploadPdf,
+          child: ref.watch(pdfProvider).isUploading
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

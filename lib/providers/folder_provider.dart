@@ -26,21 +26,41 @@ class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
     }
   }
 
-  Future<void> addFolder(Map<String, dynamic> folder) async {
-    final currentState = state.value ?? [];
-    state = AsyncValue.data([...currentState, folder]);
+  Future<void> addFolder(String folderName) async {
+    try {
+      await _folderService.createFolder(folderName);
+      // Reload folders to get the newly created folder with its ID
+      await loadFolders();
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 
   Future<void> updateFolder(String folderId, Map<String, dynamic> updatedFolder) async {
-    final currentState = state.value ?? [];
-    state = AsyncValue.data(currentState.map((folder) => 
-      folder['id'] == folderId ? updatedFolder : folder
-    ).toList());
+    try {
+      // Note: FolderService doesn't have an update method yet
+      // You would need to add this to FolderService if needed:
+      // await _folderService.updateFolder(folderId, updatedFolder);
+      
+      // For now, just update local state
+      final currentState = state.value ?? [];
+      state = AsyncValue.data(currentState.map((folder) => 
+        folder['id'] == folderId ? {...folder, ...updatedFolder} : folder
+      ).toList());
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 
   Future<void> deleteFolder(String folderId) async {
-    final currentState = state.value ?? [];
-    state = AsyncValue.data(currentState.where((folder) => folder['id'] != folderId).toList());
+    try {
+      await _folderService.deleteFolder(folderId);
+      // Remove from local state immediately
+      final currentState = state.value ?? [];
+      state = AsyncValue.data(currentState.where((folder) => folder['id'] != folderId).toList());
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
   }
 }
 

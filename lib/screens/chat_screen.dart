@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../services/firestore_chat_service.dart';
 import '../models/message.dart';
+import '../providers/chat_provider.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   final String folderId;
   final String folderName;
 
@@ -15,14 +16,12 @@ class ChatScreen extends StatefulWidget {
   });
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  final FirestoreChatService _chatService = FirestoreChatService();
-  bool _isLoading = false;
   Map<int, String?> _selectedOptions = {}; // Track selected option for each MCQ
 
   // Helper function to render text with <doc> tags in blue
@@ -67,7 +66,6 @@ class _ChatScreenState extends State<ChatScreen> {
           color: const Color(0xFF2563EB), // Blue color for document text
           height: 1.6,
           fontWeight: FontWeight.w600, // Slightly bolder for emphasis
-          backgroundColor: const Color(0xFFEFF6FF), // Light blue background
         ),
       ));
       
@@ -100,17 +98,14 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Future<void> _sendMessage() async {
-    if (_messageController.text.trim().isEmpty || _isLoading) return;
+    final chatState = ref.read(chatProvider);
+    if (_messageController.text.trim().isEmpty || chatState.isSending) return;
 
     final userMessage = _messageController.text.trim();
     _messageController.clear();
 
-    setState(() {
-      _isLoading = true;
-    });
-
     try {
-      await _chatService.sendMessage(widget.folderId, userMessage);
+      await ref.read(chatProvider.notifier).sendMessage(widget.folderId, userMessage);
     } catch (e) {
       // Error is already stored in Firestore, just show a snackbar
       if (mounted) {
@@ -121,17 +116,12 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(chatProvider);
     return Scaffold(
 
       body: Column(
@@ -141,7 +131,7 @@ class _ChatScreenState extends State<ChatScreen> {
             child: Container(
               color: const Color(0xFFF8FAFC),
               child: StreamBuilder<QuerySnapshot>(
-                stream: _chatService.getMessagesStream(widget.folderId),
+                stream: ref.watch(chatProvider.notifier).messagesStream(widget.folderId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
@@ -198,7 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           
           // Message Input
-          _buildMessageInput(),
+          _buildMessageInput(chatState.isSending),
         ],
       ),
     );
@@ -708,7 +698,7 @@ class _ChatScreenState extends State<ChatScreen> {
     return processedLines.join('\n');
   }
 
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput(bool isSending) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -755,8 +745,8 @@ class _ChatScreenState extends State<ChatScreen> {
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              onPressed: _isLoading ? null : _sendMessage,
-              icon: _isLoading
+              onPressed: isSending ? null : _sendMessage,
+              icon: isSending
                   ? const SizedBox(
                       width: 20,
                       height: 20,

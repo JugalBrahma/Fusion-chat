@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'folder_delete_service.dart';
+import 'package:http/http.dart' as http;
+import '../config/api_config.dart';
 
 class FolderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FolderDeleteService _folderDeleteService = FolderDeleteService();
+  final String _baseUrl = ApiConfig.baseUrl;
 
   // Create a new folder
   Future<void> createFolder(String folderName) async {
@@ -37,6 +40,21 @@ class FolderService {
 
   // Delete a folder using the secure backend endpoint (checks for PDFs)
   Future<void> deleteFolder(String folderId) async {
-    await _folderDeleteService.deleteFolder(folderId);
+    final user = _auth.currentUser;
+    if (user == null) throw Exception("Not logged in");
+
+    final token = await user.getIdToken();
+
+    final response = await http.delete(
+      Uri.parse("$_baseUrl/api/folders/$folderId"),
+      headers: {
+        "Authorization": "Bearer $token",
+      },
+    );
+
+    if (response.statusCode != 200) {
+      final errorBody = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+      throw Exception("Failed to delete folder: ${errorBody?['detail'] ?? 'Unknown error'}");
+    }
   }
 }

@@ -1,64 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../services/analytics_api_service.dart';
+import '../../providers/analytics_provider.dart';
 
-class FolderAnalyticsTab extends StatefulWidget {
+class FolderAnalyticsTab extends ConsumerStatefulWidget {
   final String folderId;
   
   const FolderAnalyticsTab({super.key, required this.folderId});
 
   @override
-  State<FolderAnalyticsTab> createState() => _FolderAnalyticsTabState();
+  ConsumerState<FolderAnalyticsTab> createState() => _FolderAnalyticsTabState();
 }
 
-class _FolderAnalyticsTabState extends State<FolderAnalyticsTab> {
-  final AnalyticsApiService _analyticsService = AnalyticsApiService();
-  Map<String, dynamic>? _analytics;
-  bool _isLoading = true;
+class _FolderAnalyticsTabState extends ConsumerState<FolderAnalyticsTab> {
 
   @override
   void initState() {
     super.initState();
-    _loadAnalytics();
-  }
-
-  Future<void> _loadAnalytics() async {
-    try {
-      final analytics = await _analyticsService.getFolderAnalytics(widget.folderId);
-      setState(() {
-        _analytics = analytics;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _analytics = null;
-        _isLoading = false;
-      });
-      // Only show snackbar if context is still valid
-      if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error loading analytics: $e'),
-            backgroundColor: Colors.red,
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: Colors.white,
-              onPressed: _loadAnalytics,
-            ),
-          ),
-        );
-      }
-    }
+    Future.microtask(() {
+      ref.read(analyticsProvider.notifier).loadFolderAnalytics(widget.folderId);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final analyticsState = ref.watch(analyticsProvider);
+    final analytics = analyticsState.data;
     return Container(
       color: const Color(0xFFF9FAFB),
-      child: _isLoading
+      child: analyticsState.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _analytics == null
+          : analytics == null
               ? Container(
                   padding: const EdgeInsets.all(32),
                   child: Column(
@@ -71,7 +43,9 @@ class _FolderAnalyticsTabState extends State<FolderAnalyticsTab> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Failed to load analytics',
+                        analyticsState.error?.isNotEmpty == true
+                            ? analyticsState.error!
+                            : 'Failed to load analytics',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           color: Colors.grey[600],
@@ -79,7 +53,11 @@ class _FolderAnalyticsTabState extends State<FolderAnalyticsTab> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadAnalytics,
+                        onPressed: () {
+                          ref
+                              .read(analyticsProvider.notifier)
+                              .loadFolderAnalytics(widget.folderId);
+                        },
                         child: const Text('Retry'),
                       ),
                     ],
@@ -104,14 +82,18 @@ class _FolderAnalyticsTabState extends State<FolderAnalyticsTab> {
                           ),
                           const Spacer(),
                           IconButton(
-                            onPressed: _loadAnalytics,
+                            onPressed: () {
+                            ref
+                                .read(analyticsProvider.notifier)
+                                .loadFolderAnalytics(widget.folderId);
+                          },
                             icon: const Icon(Icons.refresh),
                             tooltip: 'Refresh',
                           ),
                         ],
                       ),
                       const SizedBox(height: 24),
-                      _AnalyticsGrid(analytics: _analytics),
+                      _AnalyticsGrid(analytics: analytics),
                     ],
                   ),
                 ),

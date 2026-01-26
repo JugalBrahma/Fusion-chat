@@ -1,12 +1,11 @@
-import 'package:backendtest/services/folder_service.dart';
 import 'package:backendtest/services/notification_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/folder_content_screen.dart';
 import 'widgets/loading_overlay.dart';
 import 'providers/auth_provider.dart';
+import 'providers/folder_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -17,9 +16,16 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage> {
   final TextEditingController _folderNameController = TextEditingController();
-  final FolderService _folderService = FolderService();
   bool _isActionLoading = false;
   final Set<String> _deletingFolders = <String>{};
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(folderProvider.notifier).loadFolders();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,10 +89,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ElevatedButton.icon(
                         onPressed: () async {
                           if (_folderNameController.text.isNotEmpty) {
+                            final folderName = _folderNameController.text;
                             try {
-                              await _folderService.createFolder(
-                                  _folderNameController.text);
                               _folderNameController.clear();
+                              await ref
+                                  .read(folderProvider.notifier)
+                                  .addFolder(folderName);
                               if (mounted) {
                                 NotificationService.showSuccess(
                                   context,
@@ -94,6 +102,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 );
                               }
                             } catch (e) {
+                              if (mounted) {
+                                _folderNameController.text = folderName;
+                              }
                               if (mounted) {
                                 NotificationService.showError(
                                   context,
@@ -115,11 +126,17 @@ class _HomePageState extends ConsumerState<HomePage> {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16),
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: _folderService.getFolders(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
+                child: Builder(
+                  builder: (context) {
+                    final foldersAsync = ref.watch(folderProvider);
+
+                    return foldersAsync.when(
+                      loading: () => Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF3B82F6),
+                        ),
+                      ),
+                      error: (error, stackTrace) => Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -135,151 +152,146 @@ class _HomePageState extends ConsumerState<HomePage> {
                             ),
                           ],
                         ),
-                      );
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFF3B82F6),
-                        ),
-                      );
-                    }
-
-                    final folders = snapshot.data?.docs ?? [];
-
-                    if (folders.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: Color(0xFFEFF6FF),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                Icons.folder_outlined,
-                                size: 48,
-                                color: Color(0xFF3B82F6),
-                              ),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No folders yet',
-                              style: GoogleFonts.inter(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF64748B),
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Create your first folder to get started',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: Color(0xFF94A3B8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    return ListView.builder(
-                      padding: EdgeInsets.only(bottom: 16),
-                      itemCount: folders.length,
-                      itemBuilder: (context, index) {
-                        final folder = folders[index];
-                        return Container(
-                          margin: EdgeInsets.only(bottom: 8),
-                          child: Card(
-                            child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 20, vertical: 8),
-                              leading: Container(
-                                padding: EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: _deletingFolders.contains(folder.id)
-                                      ? Color(0xFFFEE2E2)
-                                      : Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(8),
+                      ),
+                      data: (folders) {
+                        if (folders.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFEFF6FF),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.folder_outlined,
+                                    size: 48,
+                                    color: Color(0xFF3B82F6),
+                                  ),
                                 ),
-                                child: _deletingFolders.contains(folder.id)
-                                    ? SizedBox(
-                                        width: 24,
-                                        height: 24,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
-                                        ),
-                                      )
-                                    : Icon(
-                                        Icons.folder,
-                                        color: Color(0xFF3B82F6),
-                                        size: 24,
-                                      ),
-                              ),
-                              title: Text(
-                                folder['name'],
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: _deletingFolders.contains(folder.id)
-                                      ? Color(0xFF94A3B8)
-                                      : Color(0xFF1E293B),
+                                SizedBox(height: 16),
+                                Text(
+                                  'No folders yet',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Color(0xFF64748B),
+                                  ),
                                 ),
-                              ),
-                              subtitle: Text(
-                                _deletingFolders.contains(folder.id)
-                                    ? 'Deleting folder...'
-                                    : 'Tap to open and manage',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: Color(0xFF94A3B8),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Create your first folder to get started',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: Color(0xFF94A3B8),
+                                  ),
                                 ),
-                              ),
-                              trailing: _deletingFolders.contains(folder.id)
-                                  ? null
-                                  : PopupMenuButton<String>(
-                                      icon: Icon(Icons.more_vert,
-                                          color: Color(0xFF94A3B8)),
-                                      onSelected: (value) {
-                                        if (value == 'delete') {
-                                          _showDeleteConfirmation(context, folder);
-                                        }
-                                      },
-                                      itemBuilder: (context) => [
-                                        PopupMenuItem(
-                                          value: 'delete',
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.delete,
-                                                  color: Color(0xFFEF4444),
-                                                  size: 18),
-                                              SizedBox(width: 8),
-                                              Text('Delete'),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          padding: EdgeInsets.only(bottom: 16),
+                          itemCount: folders.length,
+                          itemBuilder: (context, index) {
+                            final folder = folders[index];
+                            final folderId = folder['id'] as String?;
+                            return Container(
+                              margin: EdgeInsets.only(bottom: 8),
+                              child: Card(
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 20, vertical: 8),
+                                  leading: Container(
+                                    padding: EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: _deletingFolders.contains(folderId)
+                                          ? Color(0xFFFEE2E2)
+                                          : Color(0xFFEFF6FF),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                              onTap: _deletingFolders.contains(folder.id)
-                                  ? null
-                                  : () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => FolderContentScreen(
-                                            folderId: folder.id,
-                                            folderName: folder['name'],
+                                    child: _deletingFolders.contains(folderId)
+                                        ? SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
+                                            ),
+                                          )
+                                        : Icon(
+                                            Icons.folder,
+                                            color: Color(0xFF3B82F6),
+                                            size: 24,
                                           ),
+                                  ),
+                                  title: Text(
+                                    folder['name'],
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: _deletingFolders.contains(folderId)
+                                          ? Color(0xFF94A3B8)
+                                          : Color(0xFF1E293B),
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    _deletingFolders.contains(folderId)
+                                        ? 'Deleting folder...'
+                                        : 'Tap to open and manage',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: Color(0xFF94A3B8),
+                                    ),
+                                  ),
+                                  trailing: _deletingFolders.contains(folderId)
+                                      ? null
+                                      : PopupMenuButton<String>(
+                                          icon: Icon(Icons.more_vert,
+                                              color: Color(0xFF94A3B8)),
+                                          onSelected: (value) {
+                                            if (value == 'delete') {
+                                              _showDeleteConfirmation(context, folder);
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.delete,
+                                                      color: Color(0xFFEF4444),
+                                                      size: 18),
+                                                  SizedBox(width: 8),
+                                                  Text('Delete'),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                            ),
-                          ),
+                                  onTap: _deletingFolders.contains(folderId)
+                                      ? null
+                                      : () {
+                                          if (folderId == null) {
+                                            return;
+                                          }
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => FolderContentScreen(
+                                                folderId: folderId,
+                                                folderName: folder['name'],
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                ),
+                              ),
+                            );
+                          },
                         );
                       },
                     );
@@ -294,7 +306,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _showDeleteConfirmation(
-      BuildContext context, DocumentSnapshot folder) async {
+      BuildContext context, Map<String, dynamic> folder) async {
     NotificationService.showDeleteConfirmation(
       context,
       title: 'Delete Folder',
@@ -307,11 +319,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       ],
       onConfirm: () async {
         setState(() {
-          _deletingFolders.add(folder.id);
+          _deletingFolders.add(folder['id']);
         });
 
         try {
-          await _folderService.deleteFolder(folder.id);
+          await ref.read(folderProvider.notifier).deleteFolder(folder['id']);
           if (mounted) {
             NotificationService.showSuccess(
               context,
@@ -328,7 +340,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         } finally {
           if (mounted) {
             setState(() {
-              _deletingFolders.remove(folder.id);
+              _deletingFolders.remove(folder['id']);
             });
           }
         }
