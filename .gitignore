@@ -83,6 +83,9 @@ cache/
 .bm25_cache/
 bm25_cache/
 
+# Flutter config (local API keys, etc.)
+lib/config/
+
 # Node modules (if any)
 node_modules/
 
