@@ -173,6 +173,20 @@ class _AnalyticsGrid extends StatelessWidget {
         color: const Color(0xFFF59E0B),
         subtitle: 'Your messages',
       ),
+      _AnalyticsCard(
+        title: 'AI Responses',
+        value: '${analytics!['assistant_messages'] ?? 0}',
+        icon: Icons.smart_toy,
+        color: const Color(0xFF6366F1),
+        subtitle: 'Successful AI replies',
+      ),
+      _AnalyticsCard(
+        title: 'AI Failures',
+        value: '${analytics!['failed_ai_messages'] ?? 0}',
+        icon: Icons.error_outline,
+        color: const Color(0xFFEF4444),
+        subtitle: 'Errors from assistant',
+      ),
     ];
 
     return GridView.builder(
