@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/message.dart';
 import '../providers/chat_provider.dart';
+import '../providers/mcq_selection_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String folderId;
@@ -22,7 +23,6 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  Map<int, String?> _selectedOptions = {}; // Track selected option for each MCQ
 
   // Helper function to render text with <doc> tags in blue
   Widget _buildHighlightedText(String text) {
@@ -106,12 +106,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     try {
       await ref.read(chatProvider.notifier).sendMessage(widget.folderId, userMessage);
-    } catch (e) {
-      // Error is already stored in Firestore, just show a snackbar
+    } catch (e, stack) {
+      debugPrint('Chat send failed: $e\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
+          const SnackBar(
+            content: Text('Could not send your message. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -179,7 +179,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       // Parse into Message model to get MCQ data
                       final message = Message.fromJson(data);
                       
-                      return _buildMessageContent(message, isUser, role);
+                      return _buildMessageContent(
+                        message,
+                        isUser,
+                        role,
+                        doc.id,
+                      );
                     },
                   );
                 },
@@ -233,7 +238,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildMessageContent(Message message, bool isUser, String role) {
+  Widget _buildMessageContent(
+    Message message,
+    bool isUser,
+    String role,
+    String messageId,
+  ) {
     // For user messages, always show as text bubble
     if (isUser) {
       return _buildMessageBubble(message.text ?? '', isUser, role);
@@ -247,7 +257,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         children: [
           // Show all MCQ cards
           ...List.generate(message.mcqs.length, (index) {
-            return _buildMcqCard(message.mcqs[index], index);
+            return _buildMcqCard(messageId, message.mcqs[index], index);
           }),
         ],
       );
@@ -269,7 +279,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   
-  Widget _buildMcqCard(Mcq mcq, int mcqIndex) {
+  Widget _buildMcqCard(String messageId, Mcq mcq, int mcqIndex) {
+    final selectionMap = ref.watch(mcqSelectionProvider);
+    final selectedLetter = selectionMap['$messageId/$mcqIndex'];
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -327,7 +340,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   ...List.generate(mcq.options.length, (index) {
                     final option = mcq.options[index];
                     final optionLetter = String.fromCharCode(65 + index); // A, B, C, D
-                    final isSelected = _selectedOptions[mcqIndex] == optionLetter;
+                    final isSelected = selectedLetter == optionLetter;
                     
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -335,9 +348,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () {
-                            setState(() {
-                              _selectedOptions[mcqIndex] = optionLetter;
-                            });
+                            ref
+                                .read(mcqSelectionProvider.notifier)
+                                .selectOption(messageId, mcqIndex, optionLetter);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
@@ -389,12 +402,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     );
                   }),
                   // Show answer below when an option is selected
-                  if (_selectedOptions[mcqIndex] != null) ...[
+                  if (selectedLetter != null) ...[
                     const SizedBox(height: 16),
                     Builder(
                       builder: (context) {
                         // Find the index of the selected option
-                        final selectedLetter = _selectedOptions[mcqIndex]!;
                         final selectedIndex = selectedLetter.codeUnitAt(0) - 65; // Convert A,B,C,D to 0,1,2,3
                         final selectedOptionText = mcq.options[selectedIndex];
                         

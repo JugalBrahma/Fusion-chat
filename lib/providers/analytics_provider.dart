@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:fusion_chat/services/analytics_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -35,8 +36,12 @@ class AnalyticsNotifier extends StateNotifier<AnalyticsState> {
     try {
       final analytics = await _analyticsService.getFolderAnalyticsFromApi(folderId);
       state = state.copyWith(isLoading: false, data: analytics);
-    } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+    } catch (e, stack) {
+      debugPrint('Analytics load failed: $e\n$stack');
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Unable to load analytics. Please try again.',
+      );
     }
   }
 }

@@ -58,14 +58,15 @@ class _PdfUploadButtonState extends ConsumerState<PdfUploadButton> {
           throw Exception(response['error'] ?? 'Upload failed');
         }
       }
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('PDF upload failed: $e\n$stack');
       setState(() {
-        _errorMessage = e.toString();
+        _errorMessage = 'Upload failed. Please try again.';
       });
       
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Upload failed: $_errorMessage'),
+        const SnackBar(
+          content: Text('Upload failed. Please try again.'),
           backgroundColor: Colors.red,
         ),
       );
