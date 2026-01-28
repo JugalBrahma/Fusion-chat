@@ -1,5 +1,5 @@
+import 'package:fusion_chat/services/analytics_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:backendtest/services/analytics_service.dart';
 
 class AnalyticsState {
   final bool isLoading;

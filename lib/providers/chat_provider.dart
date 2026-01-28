@@ -1,6 +1,6 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fusion_chat/services/chat_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:backendtest/services/chat_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatState {
   final bool isSending;

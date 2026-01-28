@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:backendtest/services/folder_service.dart';
+import 'package:fusion_chat/services/folder_service.dart';
 
 class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
   final FolderService _folderService = FolderService();

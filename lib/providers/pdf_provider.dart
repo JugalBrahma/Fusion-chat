@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:backendtest/services/pdf_service.dart';
+import 'package:fusion_chat/services/pdf_service.dart';
 
 class PdfState {
   final bool isUploading;

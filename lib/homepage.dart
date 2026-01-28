@@ -1,11 +1,12 @@
-import 'package:backendtest/services/notification_service.dart';
+import 'package:fusion_chat/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'screens/folder_content_screen.dart';
-import 'widgets/loading_overlay.dart';
+
 import 'providers/auth_provider.dart';
 import 'providers/folder_provider.dart';
+import 'screens/folder_content_screen.dart';
+import 'widgets/loading_overlay.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
