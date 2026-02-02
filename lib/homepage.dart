@@ -306,8 +306,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Future<void> _showDeleteConfirmation(
-      BuildContext context, Map<String, dynamic> folder) async {
+  Future<void> _showDeleteConfirmation(BuildContext context, Map<String, dynamic> folder) async {
     NotificationService.showDeleteConfirmation(
       context,
       title: 'Delete Folder',

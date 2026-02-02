@@ -78,12 +78,12 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyDIpJ4JyHbsdK0L7lNYfHA4g0GL78CRgAg',
-    appId: '1:50875708573:web:88af19a6fd3c53e773d074',
+    appId: '1:50875708573:web:bfeb14ace18e7d7273d074',
     messagingSenderId: '50875708573',
     projectId: 'fast-sign-455517-b7',
     authDomain: 'fast-sign-455517-b7.firebaseapp.com',
     storageBucket: 'fast-sign-455517-b7.firebasestorage.app',
-    measurementId: 'G-N1QYP0JXLF',
+    measurementId: 'G-HMRVE2WS7V',
   );
 
 }

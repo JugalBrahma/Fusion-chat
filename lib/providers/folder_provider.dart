@@ -1,6 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fusion_chat/services/folder_service.dart';
 
+
+final folderProvider = AsyncNotifierProvider<FolderProvider, List<Map<String, dynamic>>>(FolderProvider.new);
+
+
 class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
   final FolderService _folderService = FolderService();
   
@@ -64,4 +68,3 @@ class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
   }
 }
 
-final folderProvider = AsyncNotifierProvider<FolderProvider, List<Map<String, dynamic>>>(FolderProvider.new);
