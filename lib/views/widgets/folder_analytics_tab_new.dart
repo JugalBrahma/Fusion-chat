@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/analytics_provider.dart';
+import '../../viewmodels/analytics_viewmodel.dart';
 
 class FolderAnalyticsTab extends ConsumerStatefulWidget {
   final String folderId;
@@ -26,8 +26,10 @@ class _FolderAnalyticsTabState extends ConsumerState<FolderAnalyticsTab> {
   Widget build(BuildContext context) {
     final analyticsState = ref.watch(analyticsProvider);
     final analytics = analyticsState.data;
+    final theme = Theme.of(context);
+    
     return Container(
-      color: const Color(0xFFF9FAFB),
+      color: theme.scaffoldBackgroundColor,
       child: analyticsState.isLoading
           ? const Center(child: CircularProgressIndicator())
           : analytics == null
@@ -70,14 +72,14 @@ class _FolderAnalyticsTabState extends ConsumerState<FolderAnalyticsTab> {
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.analytics_outlined, color: Color(0xFF1F2937), size: 24),
+                          Icon(Icons.analytics_outlined, color: Theme.of(context).textTheme.headlineMedium?.color, size: 24),
                           const SizedBox(width: 12),
                           Text(
                             'Folder Analytics',
                             style: GoogleFonts.inter(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF111827),
+                              color: Theme.of(context).textTheme.headlineMedium?.color,
                             ),
                           ),
                           const Spacer(),
@@ -108,34 +110,39 @@ class _AnalyticsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final crossAxisCount = screenWidth > 600 ? 3 : 2;
+    final mainAxisExtent = screenHeight * 0.18;
+    
     if (analytics == null) {
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(screenWidth * 0.08),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardTheme.color ?? Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE5E7EB)),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Column(
           children: [
             Icon(
               Icons.analytics_outlined,
-              size: 48,
+              size: screenWidth * 0.12,
               color: Colors.grey[400],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: screenHeight * 0.02),
             Text(
               'No analytics data available',
               style: GoogleFonts.inter(
-                fontSize: 16,
+                fontSize: screenWidth * 0.04,
                 color: Colors.grey[600],
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: screenHeight * 0.01),
             Text(
               'Start chatting to see your analytics',
               style: GoogleFonts.inter(
-                fontSize: 14,
+                fontSize: screenWidth * 0.035,
                 color: Colors.grey[500],
               ),
             ),
@@ -151,6 +158,13 @@ class _AnalyticsGrid extends StatelessWidget {
         icon: Icons.chat,
         color: const Color(0xFF3B82F6),
         subtitle: 'All conversations',
+      ),
+      _AnalyticsCard(
+        title: 'Total Tokens',
+        value: '${analytics!['total_tokens'] ?? 0}',
+        icon: Icons.token,
+        color: const Color(0xFF14B8A6),
+        subtitle: 'AI tokens used',
       ),
       _AnalyticsCard(
         title: 'MCQ Questions',
@@ -192,11 +206,11 @@ class _AnalyticsGrid extends StatelessWidget {
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        mainAxisExtent: 210,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: screenWidth * 0.04,
+        mainAxisSpacing: screenHeight * 0.02,
+        mainAxisExtent: mainAxisExtent,
       ),
       itemCount: stats.length,
       itemBuilder: (context, index) => stats[index],
@@ -221,58 +235,64 @@ class _AnalyticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(screenWidth * 0.05),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
+        color: Theme.of(context).cardTheme.color ?? Colors.white,
+        borderRadius: BorderRadius.circular(screenWidth * 0.04),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(12),
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(screenWidth * 0.025),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(screenWidth * 0.03),
+              ),
+              child: Icon(icon, color: color, size: screenWidth * 0.05),
             ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              color: const Color(0xFF111827),
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
+            SizedBox(height: screenHeight * 0.01),
+            Text(
+              value,
+              style: GoogleFonts.inter(
+                color: Theme.of(context).textTheme.headlineMedium?.color ?? const Color(0xFF111827),
+                fontSize: screenWidth * 0.055,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              color: const Color(0xFF6B7280),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
+            SizedBox(height: screenHeight * 0.003),
+            Text(
+              title,
+              style: GoogleFonts.inter(
+                color: Theme.of(context).textTheme.bodyMedium?.color ?? const Color(0xFF6B7280),
+                fontSize: screenWidth * 0.03,
+                fontWeight: FontWeight.w500,
+              ),
             ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: GoogleFonts.inter(
-              color: const Color(0xFF9CA3AF),
-              fontSize: 11,
+            Text(
+              subtitle,
+              style: GoogleFonts.inter(
+                color: Theme.of(context).textTheme.bodySmall?.color ?? const Color(0xFF9CA3AF),
+                fontSize: screenWidth * 0.026,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

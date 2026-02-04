@@ -107,7 +107,7 @@ class NotificationService {
                         child: Text(
                           warning,
                           style: TextStyle(
-                            color: warning.contains('⚠️') ? Colors.orange : Colors.grey.shade700,
+                            color: warning.contains('Important') ? Colors.orange : Colors.grey.shade700,
                           ),
                         ),
                       ),

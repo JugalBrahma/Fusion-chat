@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class McqSelectionNotifier extends StateNotifier<Map<String, String?>> {
-  McqSelectionNotifier() : super({});
+class McqSelectionViewModel extends StateNotifier<Map<String, String?>> {
+  McqSelectionViewModel() : super({});
 
   static String _key(String messageId, int mcqIndex) => '$messageId/$mcqIndex';
 
@@ -25,6 +25,6 @@ class McqSelectionNotifier extends StateNotifier<Map<String, String?>> {
 }
 
 final mcqSelectionProvider =
-    StateNotifierProvider<McqSelectionNotifier, Map<String, String?>>(
-  (ref) => McqSelectionNotifier(),
+    StateNotifierProvider<McqSelectionViewModel, Map<String, String?>>(
+  (ref) => McqSelectionViewModel(),
 );

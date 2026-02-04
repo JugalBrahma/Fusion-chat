@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/pdf_provider.dart';
+import '../../viewmodels/pdf_viewmodel.dart';
 
 class PdfUploadButton extends ConsumerStatefulWidget {
   final Function(Map<String, dynamic>)? onUploadComplete;

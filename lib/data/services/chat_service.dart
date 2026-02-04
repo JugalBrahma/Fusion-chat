@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import '../models/message.dart';
-import '../config/api_config.dart';
+import '../../config/api_config.dart';
 
 class ChatService {
   static const String baseUrl = ApiConfig.baseUrl;
@@ -48,6 +48,73 @@ class ChatService {
                   .toList() ??
               const [];
 
+          Map<String, dynamic>? _stringMap(Map<String, dynamic>? map) {
+            return map == null
+                ? null
+                : map.map((key, value) => MapEntry(key.toString(), value));
+          }
+
+          int? _parseInt(dynamic value) {
+            if (value is int) return value;
+            if (value is num) return value.toInt();
+            if (value is String) return int.tryParse(value);
+            return null;
+          }
+
+          // DEBUG: Log the payload structure
+          print('DEBUG: payload keys = ${payload.keys.toList()}');
+          print('DEBUG: payload[usage] = ${payload['usage']}');
+
+          final usage = _stringMap(
+              (payload['usage'] as Map?)?.map((key, value) => MapEntry(key.toString(), value))
+                  as Map<String, dynamic>?);
+          
+          // Try to get totals from multiple possible locations
+          Map<String, dynamic>? usageTotals;
+          
+          // First try usage['totals']
+          if (usage != null && usage['totals'] is Map) {
+            usageTotals = _stringMap((usage['totals'] as Map).map((k, v) => MapEntry(k.toString(), v)));
+          }
+          
+          // If no totals, try to extract from usage['answer'] or usage['mcq_detection']
+          if (usageTotals == null && usage != null) {
+            final answerUsage = usage['answer'] is Map ? usage['answer'] as Map : null;
+            final mcqUsage = usage['mcq_detection'] is Map ? usage['mcq_detection'] as Map : null;
+            
+            // Merge answer and mcq usage
+            if (answerUsage != null || mcqUsage != null) {
+              final totals = <String, int>{};
+              
+              void addTokens(String key, dynamic value) {
+                if (value is int) {
+                  totals[key] = (totals[key] ?? 0) + value;
+                } else if (value is num) {
+                  totals[key] = (totals[key] ?? 0) + value.toInt();
+                }
+              }
+              
+              if (answerUsage != null) {
+                addTokens('prompt_tokens', answerUsage['prompt_tokens']);
+                addTokens('completion_tokens', answerUsage['completion_tokens']);
+                addTokens('total_tokens', answerUsage['total_tokens']);
+              }
+              
+              if (mcqUsage != null) {
+                addTokens('prompt_tokens', mcqUsage['prompt_tokens']);
+                addTokens('completion_tokens', mcqUsage['completion_tokens']);
+                addTokens('total_tokens', mcqUsage['total_tokens']);
+              }
+              
+              if (totals.isNotEmpty) {
+                usageTotals = totals;
+              }
+            }
+          }
+          
+          print('DEBUG: usage = $usage');
+          print('DEBUG: usageTotals = $usageTotals');
+
           final message = Message.text(
             answer,
             mcqIsTrue: mcqFlag || mcqList.isNotEmpty,
@@ -55,6 +122,10 @@ class ChatService {
             processing_time: payload['processing_time']?.toString(),
             fromDocuments: fromDocuments,
             docReferenceCount: docCount,
+            usage: usage,
+            promptTokens: _parseInt(usageTotals?['prompt_tokens']),
+            completionTokens: _parseInt(usageTotals?['completion_tokens']),
+            totalTokens: _parseInt(usageTotals?['total_tokens']),
           );
 
           return message;
@@ -124,9 +195,16 @@ class ChatService {
         'role': 'assistant',
         'processing_time': agentResponse.processing_time,
         'mcq_is_true': agentResponse.mcqIsTrue || mcqEntries.isNotEmpty,
-        'mcqs': mcqEntries, // This stores the MCQs as a list in Firestore
+        'mcqs': mcqEntries,
         'from_documents': agentResponse.fromDocuments,
         'doc_reference_count': agentResponse.docReferenceCount,
+        if (agentResponse.usage != null) 'usage': agentResponse.usage,
+        if (agentResponse.promptTokens != null)
+          'prompt_tokens': agentResponse.promptTokens,
+        if (agentResponse.completionTokens != null)
+          'completion_tokens': agentResponse.completionTokens,
+        if (agentResponse.totalTokens != null)
+          'total_tokens': agentResponse.totalTokens,
       });
     } catch (e) {
       // Add error message to Firestore

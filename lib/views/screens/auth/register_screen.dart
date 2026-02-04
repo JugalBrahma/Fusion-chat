@@ -3,33 +3,44 @@ import 'package:email_validator/email_validator.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/auth_provider.dart';
-import 'register_screen.dart';
+import '../../../viewmodels/auth_viewmodel.dart';
+import 'login_screen.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
   String? _error;
   bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_passwordController.text != _confirmPasswordController.text) {
+      setState(() {
+        _error = 'Passwords do not match';
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
@@ -37,56 +48,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      final authService = ref.read(authServiceProvider);
-      final userCredential = await authService.signInWithEmailAndPassword(
+      final authService = ProviderScope.containerOf(context).read(authServiceProvider);
+      await authService.registerWithEmailAndPassword(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-
-      if (userCredential.user != null && mounted) {
-        // Clear form
-        _emailController.clear();
-        _passwordController.clear();
-
-        // Navigate to home
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/home',
-          (route) => false, // Remove all previous routes
-        );
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       }
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred';
-
-      // More user-friendly error messages
-      switch (e.code) {
-        case 'user-not-found':
-          errorMessage = 'No user found with this email address.';
-          break;
-        case 'wrong-password':
-          errorMessage = 'Incorrect password. Please try again.';
-          break;
-        case 'invalid-email':
-          errorMessage = 'The email address is not valid.';
-          break;
-        case 'user-disabled':
-          errorMessage = 'This account has been disabled.';
-          break;
-        default:
-          errorMessage = e.message ?? 'An error occurred during sign in.';
-      }
-
-      if (mounted) {
-        setState(() {
-          _error = errorMessage;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = 'An unexpected error occurred. Please try again.';
-        });
-      }
-      debugPrint('Login error: $e');
+      setState(() {
+        _error = e.message ?? 'An error occurred during registration';
+      });
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -110,13 +83,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 children: [
                   const SizedBox(height: 40),
                   Icon(
-                    Icons.lock_person,
+                    Icons.person_add,
                     size: 48,
                     color: Color(0xFF64748B),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Welcome Back',
+                    'Create Account',
                     style: GoogleFonts.inter(
                       fontSize: 24,
                       fontWeight: FontWeight.w600,
@@ -126,7 +99,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Enter your credentials to access your account',
+                    'Fill in your details to get started',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: Color(0xFF64748B),
@@ -158,6 +131,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ],
                       ),
                     ),
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Full Name',
+                      labelStyle: GoogleFonts.inter(color: Color(0xFF64748B)),
+                      prefixIcon: Icon(Icons.person_outline, color: Color(0xFF94A3B8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
@@ -224,9 +221,48 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm Password',
+                      labelStyle: GoogleFonts.inter(color: Color(0xFF64748B)),
+                      prefixIcon: Icon(Icons.lock_outline, color: Color(0xFF94A3B8)),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Color(0xFF3B82F6), width: 1.5),
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    ),
+                    obscureText: _obscureConfirmPassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please confirm your password';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
+                      return null;
+                    },
+                  ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF3B82F6),
                       foregroundColor: Colors.white,
@@ -246,7 +282,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           )
                         : Text(
-                            'Sign In',
+                            'Create Account',
                             style: GoogleFonts.inter(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -258,7 +294,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Don't have an account? ",
+                        'Already have an account? ',
                         style: GoogleFonts.inter(
                           color: Color(0xFF64748B),
                           fontSize: 14,
@@ -266,15 +302,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       GestureDetector(
                         onTap: () {
-                          Navigator.push(
+                          Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => const RegisterScreen(),
+                              builder: (context) => const LoginScreen(),
                             ),
                           );
                         },
                         child: Text(
-                          'Sign up',
+                          'Sign in',
                           style: GoogleFonts.inter(
                             color: Color(0xFF3B82F6),
                             fontSize: 14,

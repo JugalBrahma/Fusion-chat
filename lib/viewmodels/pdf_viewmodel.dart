@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fusion_chat/services/pdf_service.dart';
+import '../../data/services/pdf_service.dart';
 
 class PdfState {
   final bool isUploading;
@@ -21,8 +21,8 @@ class PdfState {
   }
 }
 
-class PdfNotifier extends StateNotifier<PdfState> {
-  PdfNotifier(this._pdfService) : super(const PdfState());
+class PdfViewModel extends StateNotifier<PdfState> {
+  PdfViewModel(this._pdfService) : super(const PdfState());
 
   final PdfService _pdfService;
 
@@ -53,6 +53,6 @@ class PdfNotifier extends StateNotifier<PdfState> {
   }
 }
 
-final pdfProvider = StateNotifierProvider<PdfNotifier, PdfState>((ref) {
-  return PdfNotifier(PdfService());
+final pdfProvider = StateNotifierProvider<PdfViewModel, PdfState>((ref) {
+  return PdfViewModel(PdfService());
 });

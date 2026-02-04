@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/pdf_provider.dart';
+import '../../viewmodels/pdf_viewmodel.dart';
 import '../widgets/pdf_upload_button.dart';
 
 class FolderUploadScreen extends ConsumerStatefulWidget {
@@ -83,16 +83,17 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
     return Scaffold(
-     
       body: Column(
         children: [
-          // Upload Area
           Container(
             margin: EdgeInsets.all(20),
             padding: EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -107,13 +108,13 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                 Container(
                   padding: EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: Color(0xFFEFF6FF),
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFEFF6FF),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.cloud_upload_outlined,
                     size: 64,
-                    color: Color(0xFF3B82F6),
+                    color: theme.colorScheme.primary,
                   ),
                 ),
                 SizedBox(height: 20),
@@ -122,7 +123,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E293B),
+                    color: theme.textTheme.headlineMedium?.color,
                   ),
                 ),
                 SizedBox(height: 8),
@@ -130,7 +131,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                   'Add documents to your folder',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: Color(0xFF64748B),
+                    color: theme.textTheme.bodyMedium?.color,
                   ),
                 ),
                 SizedBox(height: 24),
@@ -144,13 +145,13 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                         ? Container(
                             padding: EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Color(0xFFFEE2E2),
+                              color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Color(0xFFFECACA)),
+                              border: Border.all(color: isDark ? const Color(0xFFDC2626) : const Color(0xFFFECACA)),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.warning_amber_outlined, color: Color(0xFFF59E0B)),
+                                Icon(Icons.warning_amber_outlined, color: const Color(0xFFF59E0B)),
                                 SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
@@ -160,14 +161,14 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                         'PDF limit reached',
                                         style: GoogleFonts.inter(
                                           fontWeight: FontWeight.w600,
-                                          color: Color(0xFFDC2626),
+                                          color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFDC2626),
                                         ),
                                       ),
                                       Text(
                                         'Maximum 3 PDFs per folder',
                                         style: GoogleFonts.inter(
                                           fontSize: 12,
-                                          color: Color(0xFF7F1D1D),
+                                          color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFF7F1D1D),
                                         ),
                                       ),
                                     ],
@@ -185,12 +186,11 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
               ],
             ),
           ),
-          // Uploaded Files List
           Expanded(
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: theme.cardTheme.color ?? (isDark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -213,7 +213,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
-                            color: Color(0xFF1E293B),
+                            color: theme.textTheme.headlineMedium?.color,
                           ),
                         ),
                         StreamBuilder<int>(
@@ -224,8 +224,8 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: pdfCount >= 3 
-                                    ? Color(0xFFFEE2E2)
-                                    : Color(0xFFEFF6FF),
+                                    ? (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2))
+                                    : (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF)),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
@@ -234,8 +234,8 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: pdfCount >= 3
-                                      ? Color(0xFFDC2626)
-                                      : Color(0xFF3B82F6),
+                                      ? (isDark ? const Color(0xFFFCA5A5) : const Color(0xFFDC2626))
+                                      : (isDark ? const Color(0xFF93C5FD) : const Color(0xFF3B82F6)),
                                 ),
                               ),
                             );
@@ -258,7 +258,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return Center(
                             child: CircularProgressIndicator(
-                              color: Color(0xFF3B82F6),
+                              color: theme.colorScheme.primary,
                             ),
                           );
                         }
@@ -268,13 +268,13 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.error_outline, size: 48, color: Color(0xFFEF4444)),
+                                Icon(Icons.error_outline, size: 48, color: theme.colorScheme.error),
                                 SizedBox(height: 16),
                                 Text(
                                   'Failed to load PDFs',
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
-                                    color: Color(0xFFEF4444),
+                                    color: theme.colorScheme.error,
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -282,7 +282,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                   snapshot.error.toString(),
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    color: Color(0xFF94A3B8),
+                                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
@@ -301,13 +301,13 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                 Container(
                                   padding: EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFF8FAFC),
+                                    color: isDark ? const Color(0xFF334155) : const Color(0xFFF8FAFC),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.picture_as_pdf_outlined,
                                     size: 48,
-                                    color: Color(0xFF94A3B8),
+                                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
                                   ),
                                 ),
                                 SizedBox(height: 16),
@@ -316,7 +316,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: Color(0xFF64748B),
+                                    color: theme.textTheme.bodyMedium?.color,
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -324,7 +324,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                   'Upload your first PDF to get started',
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: Color(0xFF94A3B8),
+                                    color: theme.textTheme.bodySmall?.color,
                                   ),
                                 ),
                               ],
@@ -345,27 +345,27 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                             return Container(
                               margin: EdgeInsets.only(bottom: 12),
                               decoration: BoxDecoration(
-                                color: Color(0xFFF8FAFC),
+                                color: isDark ? const Color(0xFF334155) : const Color(0xFFF8FAFC),
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Color(0xFFE2E8F0)),
+                                border: Border.all(color: isDark ? const Color(0xFF475569) : const Color(0xFFE2E8F0)),
                               ),
                               child: Dismissible(
                                 key: Key(pdfId),
                                 direction: _deletingPdfs.contains(pdfId) ? DismissDirection.none : DismissDirection.endToStart,
                                 background: Container(
-                                  color: Color(0xFFFEE2E2),
+                                  color: isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2),
                                   alignment: Alignment.centerRight,
                                   padding: EdgeInsets.only(right: 20),
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(Icons.delete_outline, color: Color(0xFFEF4444)),
+                                      Icon(Icons.delete_outline, color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444)),
                                       SizedBox(height: 4),
                                       Text(
                                         'Delete',
                                         style: GoogleFonts.inter(
                                           fontSize: 12,
-                                          color: Color(0xFFEF4444),
+                                          color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444),
                                         ),
                                       ),
                                     ],
@@ -379,7 +379,7 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                   leading: Container(
                                     padding: EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Color(0xFFEFF6FF),
+                                      color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: _deletingPdfs.contains(pdfId)
@@ -388,12 +388,12 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                             height: 20,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                                              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
                                             ),
                                           )
                                         : Icon(
                                             Icons.picture_as_pdf,
-                                            color: Color(0xFF3B82F6),
+                                            color: theme.colorScheme.primary,
                                             size: 20,
                                           ),
                                   ),
@@ -402,14 +402,16 @@ class _FolderUploadScreenState extends ConsumerState<FolderUploadScreen> {
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: _deletingPdfs.contains(pdfId) ? Color(0xFF94A3B8) : Color(0xFF1E293B),
+                                      color: _deletingPdfs.contains(pdfId) 
+                                          ? theme.textTheme.bodyMedium?.color?.withOpacity(0.5)
+                                          : theme.textTheme.headlineMedium?.color,
                                     ),
                                   ),
                                   subtitle: Text(
                                     _deletingPdfs.contains(pdfId) ? 'Deleting...' : 'Length: ${textLength ?? '-'} chars',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: Color(0xFF94A3B8),
+                                      color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                                     ),
                                   ),
                                 ),

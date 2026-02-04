@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fusion_chat/services/folder_service.dart';
+import '../../data/services/folder_service.dart';
 
+final folderProvider = AsyncNotifierProvider<FolderViewModel, List<Map<String, dynamic>>>(FolderViewModel.new);
 
-final folderProvider = AsyncNotifierProvider<FolderProvider, List<Map<String, dynamic>>>(FolderProvider.new);
-
-
-class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
+class FolderViewModel extends AsyncNotifier<List<Map<String, dynamic>>> {
   final FolderService _folderService = FolderService();
   
   @override
@@ -33,7 +31,6 @@ class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
   Future<void> addFolder(String folderName) async {
     try {
       await _folderService.createFolder(folderName);
-      // Reload folders to get the newly created folder with its ID
       await loadFolders();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -42,11 +39,6 @@ class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
 
   Future<void> updateFolder(String folderId, Map<String, dynamic> updatedFolder) async {
     try {
-      // Note: FolderService doesn't have an update method yet
-      // You would need to add this to FolderService if needed:
-      // await _folderService.updateFolder(folderId, updatedFolder);
-      
-      // For now, just update local state
       final currentState = state.value ?? [];
       state = AsyncValue.data(currentState.map((folder) => 
         folder['id'] == folderId ? {...folder, ...updatedFolder} : folder
@@ -59,12 +51,14 @@ class FolderProvider extends AsyncNotifier<List<Map<String, dynamic>>> {
   Future<void> deleteFolder(String folderId) async {
     try {
       await _folderService.deleteFolder(folderId);
-      // Remove from local state immediately
       final currentState = state.value ?? [];
-      state = AsyncValue.data(currentState.where((folder) => folder['id'] != folderId).toList());
+      final updatedFolders = currentState.where((folder) => folder['id'] != folderId).toList();
+      state = AsyncValue.data(updatedFolders);
+      await loadFolders();
     } catch (error, stackTrace) {
+      await loadFolders();
       state = AsyncValue.error(error, stackTrace);
+      rethrow;
     }
   }
 }
-

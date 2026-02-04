@@ -1,11 +1,12 @@
-import 'package:fusion_chat/homepage.dart';
+import 'package:fusion_chat/views/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'auth/login_screen.dart';
+import 'views/screens/auth/login_screen.dart';
 import 'theme/app_theme.dart';
-import 'providers/auth_provider.dart';
+import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/theme_viewmodel.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -18,15 +19,19 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeState = ref.watch(themeProvider);
+    
     return MaterialApp(
       title: 'RAG Assistant',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: themeState.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: const AuthWrapper(),
     );
   }

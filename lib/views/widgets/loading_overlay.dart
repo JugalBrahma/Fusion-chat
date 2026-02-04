@@ -22,7 +22,7 @@ class LoadingOverlay extends StatelessWidget {
             child: IgnorePointer(
               ignoring: false,
               child: Container(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -58,6 +58,3 @@ class LoadingOverlay extends StatelessWidget {
     );
   }
 }
-
-
-

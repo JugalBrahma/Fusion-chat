@@ -23,6 +23,27 @@ class AppTheme {
   static const Color bodyTextColor = Color(0xFF374151);
   static const Color bodyMediumColor = Color(0xFF64748B);
 
+  // Dark Theme Colors
+  static const Color darkPrimaryColor = Color(0xFF60A5FA);
+  static const Color darkScaffoldBackgroundColor = Color(0xFF0F172A);
+  static const Color darkAppBarBackgroundColor = Color(0xFF1E293B);
+  static const Color darkAppBarForegroundColor = Color(0xFFF1F5F9);
+  static const Color darkCardColor = Color(0xFF1E293B);
+  static const Color darkInputFillColor = Color(0xFF334155);
+  static const Color darkInputBorderColor = Color(0xFF475569);
+  static const Color darkInputFocusedBorderColor = Color(0xFF60A5FA);
+  static const Color darkButtonForegroundColor = Colors.white;
+  static const Color darkTextButtonColor = Color(0xFF60A5FA);
+  static const Color darkTabBarLabelColor = Color(0xFF60A5FA);
+  static const Color darkTabBarUnselectedLabelColor = Color(0xFF94A3B8);
+  static const Color darkSnackBarBackgroundColor = Color(0xFF334155);
+  static const Color darkDialogBackgroundColor = Color(0xFF1E293B);
+  static const Color darkIconColor = Color(0xFF94A3B8);
+  static const Color darkLabelColor = Color(0xFF94A3B8);
+  static const Color darkHeadlineColor = Color(0xFFF1F5F9);
+  static const Color darkBodyTextColor = Color(0xFFE2E8F0);
+  static const Color darkBodyMediumColor = Color(0xFF94A3B8);
+
   // Text Styles
   static TextStyle get appBarTextStyle => GoogleFonts.inter(
     fontSize: 18,
@@ -184,6 +205,153 @@ class AppTheme {
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: bodyTextColor,
+        ),
+      ),
+    );
+  }
+
+  // Dark Theme
+  static ThemeData get darkTheme {
+    return ThemeData(
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: darkPrimaryColor,
+        brightness: Brightness.dark,
+      ),
+      useMaterial3: true,
+      scaffoldBackgroundColor: darkScaffoldBackgroundColor,
+      appBarTheme: AppBarTheme(
+        backgroundColor: darkAppBarBackgroundColor,
+        foregroundColor: darkAppBarForegroundColor,
+        elevation: 0,
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: darkAppBarForegroundColor,
+        ),
+        iconTheme: IconThemeData(
+          color: darkIconColor,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shadowColor: Colors.black26,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        color: darkCardColor,
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkInputFillColor,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: darkInputBorderColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: darkInputBorderColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: darkInputFocusedBorderColor, width: 1.5),
+        ),
+        labelStyle: GoogleFonts.inter(color: darkLabelColor),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: darkPrimaryColor,
+          foregroundColor: darkButtonForegroundColor,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          textStyle: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: darkTextButtonColor,
+          textStyle: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        unselectedLabelStyle: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+        ),
+        labelColor: darkTabBarLabelColor,
+        unselectedLabelColor: darkTabBarUnselectedLabelColor,
+        indicator: const UnderlineTabIndicator(
+          borderSide: BorderSide(
+            color: darkTabBarLabelColor,
+            width: 2,
+          ),
+        ),
+      ),
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(8)),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: darkSnackBarBackgroundColor,
+        contentTextStyle: GoogleFonts.inter(color: Colors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: darkDialogBackgroundColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        titleTextStyle: GoogleFonts.inter(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: darkHeadlineColor,
+        ),
+        contentTextStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: darkBodyMediumColor,
+        ),
+      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
+        headlineLarge: GoogleFonts.inter(
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          color: darkHeadlineColor,
+        ),
+        headlineMedium: GoogleFonts.inter(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: darkHeadlineColor,
+        ),
+        bodyLarge: GoogleFonts.inter(
+          fontSize: 16,
+          color: darkBodyTextColor,
+        ),
+        bodyMedium: GoogleFonts.inter(
+          fontSize: 14,
+          color: darkBodyMediumColor,
+        ),
+        labelLarge: GoogleFonts.inter(
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: darkBodyTextColor,
         ),
       ),
     );

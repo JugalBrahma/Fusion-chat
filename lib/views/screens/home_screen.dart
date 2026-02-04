@@ -1,12 +1,12 @@
-import 'package:fusion_chat/services/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-import 'providers/auth_provider.dart';
-import 'providers/folder_provider.dart';
-import 'screens/folder_content_screen.dart';
-import 'widgets/loading_overlay.dart';
+import 'package:google_fonts/google_fonts.dart';    
+import '../../data/services/notification_service.dart';
+import '../../viewmodels/auth_viewmodel.dart';
+import '../../viewmodels/folder_viewmodel.dart';
+import '../../viewmodels/theme_viewmodel.dart';
+import 'folder_content_screen.dart';
+import '../widgets/loading_overlay.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -30,16 +30,39 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
     return LoadingOverlay(
       isLoading: _isActionLoading,
       message: 'Working...',
       child: Scaffold(
         appBar: AppBar(
-          title: Text('My Folders'),
+          title: Text(
+            'My Folders',
+            style: TextStyle(
+              color: Theme.of(context).appBarTheme.foregroundColor ??
+                  (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+            ),
+          ),
           actions: [
+            Consumer(
+              builder: (context, ref, child) {
+                final themeState = ref.watch(themeProvider);
+                return IconButton(
+                  icon: Icon(
+                    themeState.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                    color: Theme.of(context).appBarTheme.foregroundColor,
+                  ),
+                  onPressed: () {
+                    ref.read(themeProvider.notifier).toggleTheme();
+                  },
+                  tooltip: themeState.isDarkMode ? 'Switch to light mode' : 'Switch to dark mode',
+                );
+              },
+            ),
             IconButton(
-              icon: Icon(Icons.logout),
+              icon: Icon(
+                Icons.logout,
+                color: Theme.of(context).appBarTheme.foregroundColor,
+              ),
               onPressed: () async {
                 await ref.read(authServiceProvider).signOut();
               },
@@ -53,11 +76,11 @@ class _HomePageState extends ConsumerState<HomePage> {
               margin: EdgeInsets.all(16),
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).cardTheme.color ?? (Theme.of(context).brightness == Brightness.dark ? const Color(0xFF1E293B) : Colors.white),
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 10,
                     offset: Offset(0, 2),
                   ),
@@ -71,7 +94,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF1E293B),
+                      color: Theme.of(context).textTheme.headlineMedium?.color,
                     ),
                   ),
                   SizedBox(height: 12),
@@ -156,6 +179,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                       ),
                       data: (folders) {
                         if (folders.isEmpty) {
+                          final isDark = Theme.of(context).brightness == Brightness.dark;
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -163,13 +187,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                                 Container(
                                   padding: EdgeInsets.all(24),
                                   decoration: BoxDecoration(
-                                    color: Color(0xFFEFF6FF),
+                                    color: isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
                                     Icons.folder_outlined,
                                     size: 48,
-                                    color: Color(0xFF3B82F6),
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                                 SizedBox(height: 16),
@@ -178,7 +202,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   style: GoogleFonts.inter(
                                     fontSize: 18,
                                     fontWeight: FontWeight.w500,
-                                    color: Color(0xFF64748B),
+                                    color: Theme.of(context).textTheme.headlineMedium?.color,
                                   ),
                                 ),
                                 SizedBox(height: 8),
@@ -186,7 +210,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   'Create your first folder to get started',
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: Color(0xFF94A3B8),
+                                    color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                                   ),
                                 ),
                               ],
@@ -200,6 +224,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           itemBuilder: (context, index) {
                             final folder = folders[index];
                             final folderId = folder['id'] as String?;
+                            final isDark = Theme.of(context).brightness == Brightness.dark;
                             return Container(
                               margin: EdgeInsets.only(bottom: 8),
                               child: Card(
@@ -210,8 +235,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     padding: EdgeInsets.all(8),
                                     decoration: BoxDecoration(
                                       color: _deletingFolders.contains(folderId)
-                                          ? Color(0xFFFEE2E2)
-                                          : Color(0xFFEFF6FF),
+                                          ? (isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFEE2E2))
+                                          : (isDark ? const Color(0xFF1E3A8A) : const Color(0xFFEFF6FF)),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: _deletingFolders.contains(folderId)
@@ -220,12 +245,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                                             height: 24,
                                             child: CircularProgressIndicator(
                                               strokeWidth: 2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEF4444)),
+                                              valueColor: AlwaysStoppedAnimation<Color>(
+                                                isDark ? const Color(0xFFFCA5A5) : const Color(0xFFEF4444)),
                                             ),
                                           )
                                         : Icon(
                                             Icons.folder,
-                                            color: Color(0xFF3B82F6),
+                                            color: Theme.of(context).colorScheme.primary,
                                             size: 24,
                                           ),
                                   ),
@@ -235,8 +261,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                       color: _deletingFolders.contains(folderId)
-                                          ? Color(0xFF94A3B8)
-                                          : Color(0xFF1E293B),
+                                          ? Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
+                                          : Theme.of(context).textTheme.headlineMedium?.color,
                                     ),
                                   ),
                                   subtitle: Text(
@@ -245,14 +271,14 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         : 'Tap to open and manage',
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: Color(0xFF94A3B8),
+                                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                                     ),
                                   ),
                                   trailing: _deletingFolders.contains(folderId)
                                       ? null
                                       : PopupMenuButton<String>(
                                           icon: Icon(Icons.more_vert,
-                                              color: Color(0xFF94A3B8)),
+                                              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
                                           onSelected: (value) {
                                             if (value == 'delete') {
                                               _showDeleteConfirmation(context, folder);
@@ -312,7 +338,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       title: 'Delete Folder',
       itemName: folder['name'],
       warnings: [
-        '⚠️ Important: You must delete all PDFs from Upload section first!',
+        'Important: You must delete all PDFs from Upload section first!',
         'This will permanently delete:',
         '• All progress data and analytics',
         '• All associated files and metadata',
@@ -347,5 +373,4 @@ class _HomePageState extends ConsumerState<HomePage> {
       },
     );
   }
-
 }

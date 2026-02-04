@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
-import '../config/api_config.dart';
+import '../../config/api_config.dart';
 
 class FolderService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

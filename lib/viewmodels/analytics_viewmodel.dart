@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:fusion_chat/services/analytics_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fusion_chat/data/services/analytics_service.dart';
+
 
 class AnalyticsState {
   final bool isLoading;
@@ -26,8 +27,8 @@ class AnalyticsState {
   }
 }
 
-class AnalyticsNotifier extends StateNotifier<AnalyticsState> {
-  AnalyticsNotifier(this._analyticsService) : super(const AnalyticsState());
+class AnalyticsViewModel extends StateNotifier<AnalyticsState> {
+  AnalyticsViewModel(this._analyticsService) : super(const AnalyticsState());
 
   final AnalyticsService _analyticsService;
 
@@ -47,6 +48,6 @@ class AnalyticsNotifier extends StateNotifier<AnalyticsState> {
 }
 
 final analyticsProvider =
-    StateNotifierProvider<AnalyticsNotifier, AnalyticsState>((ref) {
-  return AnalyticsNotifier(AnalyticsService());
+    StateNotifierProvider<AnalyticsViewModel, AnalyticsState>((ref) {
+  return AnalyticsViewModel(AnalyticsService());
 });

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'folder_upload_screen.dart';
+import 'package:fusion_chat/views/widgets/folder_analytics_tab_new.dart';
 import 'chat_screen.dart';
-import 'widgets/folder_analytics_tab_new.dart';
+import 'folder_upload_screen.dart';
 
 class FolderContentScreen extends StatefulWidget {
   final String folderId;
@@ -47,7 +47,30 @@ class _FolderContentScreenState extends State<FolderContentScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.folderName),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.folderName,
+              style: TextStyle(
+                color: Theme.of(context).appBarTheme.foregroundColor ??
+                    (Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
+              ),
+            ),
+            Text(
+              widget.folderId.length > 12 
+                  ? widget.folderId.substring(0, 12) 
+                  : widget.folderId,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).brightness == Brightness.dark 
+                    ? Colors.grey[400] 
+                    : Colors.grey[600],
+                fontWeight: FontWeight.w400,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline, color: Colors.red),

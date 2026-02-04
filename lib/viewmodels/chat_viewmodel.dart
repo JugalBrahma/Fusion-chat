@@ -1,4 +1,4 @@
-import 'package:fusion_chat/services/chat_service.dart';
+import '../../data/services/chat_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,8 +12,8 @@ class ChatState {
   }
 }
 
-class ChatNotifier extends StateNotifier<ChatState> {
-  ChatNotifier(this._chatService) : super(const ChatState());
+class ChatViewModel extends StateNotifier<ChatState> {
+  ChatViewModel(this._chatService) : super(const ChatState());
 
   final ChatService _chatService;
 
@@ -36,6 +36,6 @@ class ChatNotifier extends StateNotifier<ChatState> {
   }
 }
 
-final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
-  return ChatNotifier(ChatService());
+final chatProvider = StateNotifierProvider<ChatViewModel, ChatState>((ref) {
+  return ChatViewModel(ChatService());
 });
