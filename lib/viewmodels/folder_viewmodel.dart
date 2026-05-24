@@ -1,11 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/folder_service.dart';
 
-final folderProvider = AsyncNotifierProvider<FolderViewModel, List<Map<String, dynamic>>>(FolderViewModel.new);
+final folderProvider =
+    AsyncNotifierProvider<FolderViewModel, List<Map<String, dynamic>>>(
+      FolderViewModel.new,
+    );
 
 class FolderViewModel extends AsyncNotifier<List<Map<String, dynamic>>> {
   final FolderService _folderService = FolderService();
-  
+
   @override
   Future<List<Map<String, dynamic>>> build() async {
     return [];
@@ -13,14 +16,13 @@ class FolderViewModel extends AsyncNotifier<List<Map<String, dynamic>>> {
 
   Future<void> loadFolders() async {
     state = const AsyncValue.loading();
-    
+
     try {
       final stream = _folderService.getFolders();
       await for (final snapshot in stream) {
-        final folders = snapshot.docs.map((doc) => {
-          'id': doc.id,
-          ...doc.data() as Map<String, dynamic>
-        }).toList();
+        final folders = snapshot.docs
+            .map((doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>})
+            .toList();
         state = AsyncValue.data(folders);
       }
     } catch (error, stackTrace) {
@@ -37,12 +39,21 @@ class FolderViewModel extends AsyncNotifier<List<Map<String, dynamic>>> {
     }
   }
 
-  Future<void> updateFolder(String folderId, Map<String, dynamic> updatedFolder) async {
+  Future<void> updateFolder(
+    String folderId,
+    Map<String, dynamic> updatedFolder,
+  ) async {
     try {
       final currentState = state.value ?? [];
-      state = AsyncValue.data(currentState.map((folder) => 
-        folder['id'] == folderId ? {...folder, ...updatedFolder} : folder
-      ).toList());
+      state = AsyncValue.data(
+        currentState
+            .map(
+              (folder) => folder['id'] == folderId
+                  ? {...folder, ...updatedFolder}
+                  : folder,
+            )
+            .toList(),
+      );
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -52,7 +63,9 @@ class FolderViewModel extends AsyncNotifier<List<Map<String, dynamic>>> {
     try {
       await _folderService.deleteFolder(folderId);
       final currentState = state.value ?? [];
-      final updatedFolders = currentState.where((folder) => folder['id'] != folderId).toList();
+      final updatedFolders = currentState
+          .where((folder) => folder['id'] != folderId)
+          .toList();
       state = AsyncValue.data(updatedFolders);
       await loadFolders();
     } catch (error, stackTrace) {
