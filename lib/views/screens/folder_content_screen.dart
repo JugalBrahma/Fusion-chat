@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fusion_chat/views/widgets/folder_analytics_tab_new.dart';
 import 'chat_screen.dart';
 import 'folder_upload_screen.dart';
 
@@ -26,12 +25,12 @@ class _FolderContentScreenState extends State<FolderContentScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   Future<void> _refreshCurrentTab() async {
     switch (_tabController.index) {
-      case 0: // Upload
+      case 1: // Upload
         _uploadRefreshKey.currentState?.show();
         break;
     }
@@ -105,7 +104,6 @@ class _FolderContentScreenState extends State<FolderContentScreen>
           controller: _tabController,
           tabs: const [
             Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
-            Tab(icon: Icon(Icons.analytics), text: 'Analytics'),
             Tab(icon: Icon(Icons.cloud_upload_outlined), text: 'Upload'),
           ],
         ),
@@ -117,7 +115,6 @@ class _FolderContentScreenState extends State<FolderContentScreen>
             folderId: widget.folderId,
             folderName: widget.folderName,
           ),
-          FolderAnalyticsTab(folderId: widget.folderId),
           RefreshIndicator(
             key: _uploadRefreshKey,
             onRefresh: () async {
