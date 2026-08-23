@@ -16,5 +16,8 @@ export 'pdf_viewmodel.dart';
 // Theme
 export 'theme_viewmodel.dart';
 
+// Analytics
+export 'analytics_viewmodel.dart';
+
 // Base
 export 'base_viewmodel.dart';

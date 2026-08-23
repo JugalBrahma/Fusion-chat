@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../viewmodels/analytics_viewmodel.dart';
 import 'chat_screen.dart';
 import 'folder_upload_screen.dart';
+import '../widgets/folder_analytics_tab_new.dart';
 
-class FolderContentScreen extends StatefulWidget {
+class FolderContentScreen extends ConsumerStatefulWidget {
   final String folderId;
   final String folderName;
 
@@ -13,10 +16,10 @@ class FolderContentScreen extends StatefulWidget {
   });
 
   @override
-  State<FolderContentScreen> createState() => _FolderContentScreenState();
+  ConsumerState<FolderContentScreen> createState() => _FolderContentScreenState();
 }
 
-class _FolderContentScreenState extends State<FolderContentScreen>
+class _FolderContentScreenState extends ConsumerState<FolderContentScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   // Refresh control
@@ -25,12 +28,15 @@ class _FolderContentScreenState extends State<FolderContentScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   Future<void> _refreshCurrentTab() async {
     switch (_tabController.index) {
-      case 1: // Upload
+      case 1: // Analytics
+        await ref.read(analyticsProvider(widget.folderId).notifier).refresh();
+        break;
+      case 2: // Upload
         _uploadRefreshKey.currentState?.show();
         break;
     }
@@ -104,6 +110,7 @@ class _FolderContentScreenState extends State<FolderContentScreen>
           controller: _tabController,
           tabs: const [
             Tab(icon: Icon(Icons.chat_bubble_outline), text: 'Chat'),
+            Tab(icon: Icon(Icons.analytics_outlined), text: 'Analytics'),
             Tab(icon: Icon(Icons.cloud_upload_outlined), text: 'Upload'),
           ],
         ),
@@ -112,6 +119,10 @@ class _FolderContentScreenState extends State<FolderContentScreen>
         controller: _tabController,
         children: [
           ChatScreen(
+            folderId: widget.folderId,
+            folderName: widget.folderName,
+          ),
+          FolderAnalyticsTab(
             folderId: widget.folderId,
             folderName: widget.folderName,
           ),
@@ -131,3 +142,4 @@ class _FolderContentScreenState extends State<FolderContentScreen>
     );
   }
 }
+

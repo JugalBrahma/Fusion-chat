@@ -1,9 +1,9 @@
-import 'package:fusion_chat/views/screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'views/screens/auth/login_screen.dart';
+import 'views/screens/home_screen.dart';
 import 'theme/app_theme.dart';
 import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/theme_viewmodel.dart';
