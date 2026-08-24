@@ -53,6 +53,10 @@ class FolderAnalyticsTab extends ConsumerWidget {
           children: [
             // LangSmith Live Status Header
             _buildLangSmithHeader(context, isDark, data, ref),
+            const SizedBox(height: 12),
+
+            // Temporary Data Notice Banner
+            _buildTemporaryDataNotice(context, isDark),
             const SizedBox(height: 16),
 
             // Top KPI Cards: Latency & Token Usage
@@ -156,6 +160,45 @@ class FolderAnalyticsTab extends ConsumerWidget {
             onPressed: () {
               ref.read(analyticsProvider(folderId).notifier).refresh();
             },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTemporaryDataNotice(BuildContext context, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark
+            ? const Color(0xFFF59E0B).withValues(alpha: 0.1)
+            : const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark
+              ? const Color(0xFFF59E0B).withValues(alpha: 0.3)
+              : const Color(0xFFFDE68A),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: isDark ? const Color(0xFFFBBF24) : const Color(0xFFD97706),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Notice: Analytics telemetry is temporary and not stored permanently in your database. Recent query traces and token metrics automatically expire after some days.',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                height: 1.45,
+                fontWeight: FontWeight.w400,
+                color: isDark ? const Color(0xFFFDE68A) : const Color(0xFF92400E),
+              ),
+            ),
           ),
         ],
       ),
