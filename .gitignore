@@ -1,35 +1,44 @@
 # Environment files
 .env
-.env.local
-.env.development
-.env.production
-.env.test
+.env.*
+!.env.example
+!.env.template
 
-# Key files
+# Key & Keystore files
 *.key
 *.pem
 *.p12
 *.pfx
+*.asc
+*.keystore
+*.jks
 private_key*
 secret_key*
 api_key*
 config_key*
+key.properties
 
-# Firebase service account keys
+# Firebase service account & Google credential keys
 service-account-key.json
+service-account*.json
 firebase-credentials.json
 google-credentials.json
 firebase-*.json
+firebase-adminsdk*.json
 google-services.json
 GoogleService-Info.plist
 
-# API keys and secrets
+# API keys, tokens, and secrets
 keys/
 secrets/
 *.secret
 *.token
 credentials.json
+*credentials*.json
 config/secrets.json
+secrets.json
+secrets.yaml
+secrets.yml
 
 # Flutter/Android build files (long path issues)
 build/
